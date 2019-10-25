@@ -11,7 +11,7 @@ public:
 	 * @brief Leaf node constructor
 	 * @param vpPrims The vector of pointers to the primitives included in the leaf node
 	 */
-	CBSPNode(const std::vector<std::shared_ptr<CPrim>>& vpPrims)
+	CBSPNode(const std::vector<std::shared_ptr<CPrim>> vpPrims)
 		: CBSPNode(vpPrims, 0, 0, nullptr, nullptr)
 	{}
 	/**
@@ -39,17 +39,32 @@ public:
 	 * @brief Traverses the ray \b ray and checks for intersection with a primitive
 	 * @details If the intersection is found, \b ray.t is updated
 	 * @param[in,out] ray The ray
-	 * @param[in,out] t0 The distance from ray origin at which the ray enters the scene
-	 * @param[in,out] t1 The distance from ray origin at which the ray leaves the scene
 	 */
 	virtual bool traverse(Ray& ray, float& t0, float& t1)
 	{
+		float var;
+
 		if (isLeaf()) {
-			// --- PUT YOUR CODE HERE ---
-			return true;
+			bool hit = false;
+			for(auto prim : m_vpPrims) {
+				if(prim.get()->Intersect(ray))
+					hit = true;
+			}
+			return hit;
 		} else {
-			// --- PUT YOUR CODE HERE ---
-			return true;
+			var = (m_splitVal - ray.org[m_splitDim]) / ray.dir[m_splitDim];
+
+			if(var <= t0) {
+				return m_pRight->traverse(ray, t0, t1);
+			}else if(var >= t1) {
+				return m_pLeft->traverse(ray, t0, t1);
+			}else {
+				if(m_pLeft->traverse(ray, t0, var)) {
+					return true;
+				} 
+				
+				return m_pRight->traverse(ray, var, t1);
+			}
 		}
 	}
 
